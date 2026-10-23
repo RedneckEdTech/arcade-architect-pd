@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcade Review: Cyber Defender</title>
+<style>
+  body { background-color: #000; color: #00FFFF; font-family: 'Courier New', Courier, monospace; text-align: center; overflow: hidden; margin: 0; user-select: none; }
+  #gameBoard { width: 100vw; height: 80vh; position: relative; border-bottom: 5px solid #FF00FF; overflow: hidden; }
+  .enemy { position: absolute; background: #FF00FF; color: white; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 14px; white-space: nowrap; font-weight: bold; }
+  #hud { display: flex; justify-content: space-around; padding: 20px; font-size: 24px; text-shadow: 2px 2px #FF00FF; }
+  button { background: #00FFFF; color: #000; border: none; padding: 10px 20px; font-size: 20px; cursor: pointer; font-family: inherit; font-weight: bold; margin-top: 20px; border-radius: 5px;}
+  button:hover { background: #FF00FF; color: #fff; }
+  #gameOver { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 40px; border: 4px solid #FF00FF; z-index: 10; border-radius: 10px; }
+  .instructions { font-size: 16px; color: white; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div id="hud">
+  <div>Time: <span id="time">30</span></div>
+  <div>Score: <span id="score">0</span></div>
+</div>
+<div id="gameBoard"></div>
+<div id="gameOver">
+  <h2 id="endMsg">GAME OVER</h2>
+  <p>Final Score: <span id="finalScore">0</span></p>
+  <button onclick="startGame()">TRY AGAIN</button>
+</div>
+<script>
+  const board = document.getElementById('gameBoard');
+  const scoreEl = document.getElementById('score');
+  const timeEl = document.getElementById('time');
+  const overEl = document.getElementById('gameOver');
+  const msgEl = document.getElementById('endMsg');
+  
+  let score = 0; let time = 30; let gameInterval; let spawnInterval; let playing = false;
+  const terms = ["Phishing", "Malware", "Firewall", "Virus", "Trojan", "Encryption", "VPN"];
+  
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playBeep(freq, type, duration) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    osc.stop(audioCtx.currentTime + duration);
+  }
+
+  function startGame() {
+    playing = true; score = 0; time = 30;
+    scoreEl.innerText = score; timeEl.innerText = time;
+    overEl.style.display = 'none';
+    board.innerHTML = '';
+    gameInterval = setInterval(updateTime, 1000);
+    spawnInterval = setInterval(spawnEnemy, 800);
+  }
+
+  function updateTime() {
+    time--; timeEl.innerText = time;
+    if(time <= 0) endGame();
+  }
+
+  function spawnEnemy() {
+    if(!playing) return;
+    const enemy = document.createElement('div');
+    enemy.className = 'enemy';
+    enemy.innerText = terms[Math.floor(Math.random() * terms.length)] + " 👾";
+    enemy.style.left = Math.random() * (window.innerWidth - 120) + 'px';
+    enemy.style.top = '0px';
+    
+    enemy.onclick = () => {
+      playBeep(800, 'square', 0.1);
+      score += 10; scoreEl.innerText = score;
+      enemy.remove();
+    };
+    
+    board.appendChild(enemy);
+    moveEnemy(enemy);
+  }
+
+  function moveEnemy(enemy) {
+    let top = 0;
+    const speed = Math.random() * 3 + 1;
+    const drop = setInterval(() => {
+      if(!playing) { clearInterval(drop); return; }
+      top += speed;
+      enemy.style.top = top + 'px';
+      if(top > window.innerHeight * 0.75) {
+        clearInterval(drop);
+        enemy.remove();
+        if(score > 0) { score -= 5; scoreEl.innerText = score; } // Penalty for missing
+        playBeep(150, 'sawtooth', 0.2);
+      }
+    }, 30);
+  }
+
+  function endGame() {
+    playing = false; clearInterval(gameInterval); clearInterval(spawnInterval);
+    document.getElementById('finalScore').innerText = score;
+    msgEl.innerText = score > 150 ? "GRID SECURED!" : "SYSTEM BREACHED";
+    overEl.style.display = 'block';
+    playBeep(300, 'sawtooth', 1);
+  }
+  
+  overEl.style.display = 'block';
+</script>
+</body>
+</html>
