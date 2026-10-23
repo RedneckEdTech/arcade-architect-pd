@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cybersecurity Vocab Matcher</title>
+<style>
+  body { font-family: 'Courier New', Courier, monospace; background-color: #1a1a1a; color: #fff; text-align: center; margin: 0; padding: 20px; }
+  h1 { color: #00FFFF; text-shadow: 2px 2px #FF00FF; }
+  .container { display: flex; justify-content: space-around; flex-wrap: wrap; max-width: 800px; margin: 0 auto; }
+  .draggable { background-color: #FF00FF; padding: 10px 20px; margin: 10px; cursor: grab; border-radius: 5px; font-weight: bold; color: white; user-select: none; }
+  .dropzone { background-color: #333; border: 2px dashed #00FFFF; padding: 20px; margin: 10px; width: 250px; min-height: 50px; border-radius: 5px; display: flex; align-items: center; justify-content: center; flex-direction: column;}
+  .correct { background-color: #00FF00; border-color: #00FF00; color: black; }
+</style>
+</head>
+<body>
+<h1>Cybersecurity Matcher</h1>
+<p>Drag the terms to their correct definitions to secure the grid!</p>
+<div class="container" id="terms">
+  <div class="draggable" draggable="true" id="term1" data-match="def1">Phishing</div>
+  <div class="draggable" draggable="true" id="term2" data-match="def2">Malware</div>
+  <div class="draggable" draggable="true" id="term3" data-match="def3">Firewall</div>
+</div>
+<div class="container" id="definitions">
+  <div class="dropzone" id="def2">Malicious software designed to harm a network.</div>
+  <div class="dropzone" id="def1">Fraudulent attempt to obtain sensitive info.</div>
+  <div class="dropzone" id="def3">Network security system that monitors traffic.</div>
+</div>
+<script>
+  const draggables = document.querySelectorAll('.draggable');
+  const dropzones = document.querySelectorAll('.dropzone');
+  draggables.forEach(draggable => {
+    draggable.addEventListener('dragstart', () => { draggable.classList.add('dragging'); });
+    draggable.addEventListener('dragend', () => { draggable.classList.remove('dragging'); });
+  });
+  dropzones.forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); });
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      const draggable = document.querySelector('.dragging');
+      if(draggable && draggable.dataset.match === zone.id) {
+        zone.appendChild(draggable);
+        zone.classList.add('correct');
+        draggable.setAttribute('draggable', 'false');
+      }
+    });
+  });
+</script>
+</body>
+</html>
